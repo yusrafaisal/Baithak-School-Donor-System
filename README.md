@@ -1,62 +1,74 @@
 # Baithak School Network — Donor Management System
 
-A web-based donor management system built for Baithak School Network as a university project.
+A web-based donor management system built for Baithak School Network as a university project. Staff can record donations split across multiple projects, manage donors, search past donations, and print receipts.
 
----
+## Tech Stack
 
-## Project Structure
+- **Backend:** Python, FastAPI, MongoDB Atlas
+- **Frontend:** Next.js (Pages Router) <!-- verify: pages/ vs app/ -->
+
+## Repository Structure
 
 ```
-baithak-dms/          ← Python FastAPI backend
-baithak-frontend/     ← Next.js frontend
+.
+├── app/                    # FastAPI backend
+│   ├── main.py             # App entry point
+│   ├── db/database.py      # MongoDB connection
+│   ├── models/models.py    # Pydantic schemas
+│   └── routers/
+│       ├── donors.py       # Donor endpoints
+│       └── donations.py    # Donation endpoints
+├── scripts/seed.py         # Seeds projects, accounts, cost centers
+├── baithak-frontend/       # Next.js frontend
+│   ├── pages/
+│   │   ├── index.js        # Donation form
+│   │   ├── donors.js       # Add/view donors
+│   │   └── receipt/[id].js # Printable receipt
+│   └── styles/globals.css
+├── requirements.txt
+├── .env.example
+└── README.md
 ```
-
----
 
 ## Prerequisites
 
 - Python 3.10+
 - Node.js 18+
-- A MongoDB Atlas account (cluster already set up)
+- A MongoDB Atlas cluster and a database user
 
----
+## Setup
 
-## Backend Setup
+### 1. Clone and configure
 
 ```bash
-cd baithak-dms
-pip install -r requirements.txt
+git clone https://github.com/yusrafaisal/Baithak-School-Donor-System.git
+cd Baithak-School-Donor-System
+cp .env.example .env
 ```
 
-Create a `.env` file in `baithak-dms/`:
+Edit `.env` and fill in your own values:
 
-```env
-MONGODB_URI=<paste the MongoDB connection string>
+```
+MONGODB_URI=<your MongoDB connection string>
 DB_NAME=baithak_dms
 ```
 
-Seed the static data (run once):
+> Never commit `.env`. Ask the project owner for credentials; do not share them in the repo.
+
+### 2. Backend
 
 ```bash
-python scripts/seed.py
-```
-
-Start the backend:
-
-```bash
-# If python is not on PATH, use the full path to python.exe
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python scripts/seed.py          # run once to seed static data
 python -m uvicorn app.main:app --reload
-
-# Or on Windows if above doesn't work:
-C:\Users\<YourUser>\AppData\Local\Python\pythoncore-3.14-64\python.exe -m uvicorn app.main:app --reload
 ```
 
-Backend runs at: `http://localhost:8000`  
-Auto-generated API docs: `http://localhost:8000/docs`
+- API: http://localhost:8000
+- Interactive docs: http://localhost:8000/docs
 
----
-
-## Frontend Setup
+### 3. Frontend
 
 ```bash
 cd baithak-frontend
@@ -64,63 +76,31 @@ npm install
 npm run dev
 ```
 
-Frontend runs at: `http://localhost:3000`
-
-> Make sure the backend is running before using the frontend.
-
----
+- App: http://localhost:3000
+- The backend must be running first. <!-- verify: how the frontend finds the API URL; add an env var if hardcoded -->
 
 ## Features
 
-- **Donation Tab** — Enter a donation with donor, date, payment mode, and line items split across multiple projects
-- **Manage Donors** — Add and view donors (`/donors`)
-- **Search Tab** — Filter donations
-- **Print Receipt** — Opens a printable receipt page for any saved donation
-
----
-
-## Project File Structure
-
-```
-baithak-dms/
-├── app/
-│   ├── main.py              # FastAPI entry point
-│   ├── db/database.py       # MongoDB connection
-│   ├── models/models.py     # Pydantic schemas
-│   └── routers/
-│       ├── donors.py        # Donor endpoints
-│       └── donations.py     # Donation endpoints
-├── scripts/seed.py          # Seeds projects, accounts, cost centers
-├── requirements.txt
-└── .env                     # Not committed — create manually
-
-baithak-frontend/
-├── pages/
-│   ├── index.js             # Main donation form
-│   ├── donors.js            # Add/view donors
-│   └── receipt/[id].js      # Printable receipt
-└── styles/globals.css
-```
-
----
+- **Donations:** donor, date, payment mode, and line items split across projects
+- **Donors:** add and view donors (`/donors`)
+- **Search:** filter donations
+- **Receipts:** printable receipt page for any saved donation
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/donors/` | List all donors |
-| POST | `/donors/` | Add a donor |
-| GET | `/donors/{id}` | Get donor by ID |
-| POST | `/donations/` | Create a donation |
-| GET | `/donations/{id}` | Get donation by ID |
-| GET | `/donations/` | List/filter donations |
-
----
+| Method | Endpoint          | Description           |
+|--------|-------------------|-----------------------|
+| GET    | `/donors/`        | List all donors       |
+| POST   | `/donors/`        | Add a donor           |
+| GET    | `/donors/{id}`    | Get donor by ID       |
+| POST   | `/donations/`     | Create a donation     |
+| GET    | `/donations/`     | List/filter donations |
+| GET    | `/donations/{id}` | Get donation by ID    |
 
 ## Pending (to confirm with client)
 
 - Full list of schools/cost centers
 - Full list of account names
-- Fund Receipt No — auto-generated or manual?
+- Fund Receipt No: auto-generated or manual?
 - Printed receipt format (logo, address, fields)
-- Auth / login requirement
+- Authentication / login requirements
