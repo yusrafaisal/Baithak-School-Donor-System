@@ -47,3 +47,4 @@ class DonationCreate(BaseModel):
 class DonationOut(DonationCreate):
     id: str
     total: float
+    donor_name: Optional[str] = None

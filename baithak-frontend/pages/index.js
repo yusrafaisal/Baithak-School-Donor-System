@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-
-const API = 'http://localhost:8000'
+import { api } from '../lib/api'
+import SearchTab from '../components/SearchTab'
 
 const PROJECTS = [
   'School Sponsorship', 'Student Sponsorship', 'Class Sponsorship',
@@ -32,16 +32,12 @@ export default function Home() {
   const [lineItems, setLineItems] = useState([])
   const [savedId, setSavedId] = useState(null)
   const [status, setStatus] = useState('')
-
-  // Search state
-  const [searchName, setSearchName] = useState('')
-  const [searchResults, setSearchResults] = useState([])
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    fetch(`${API}/donors/`)
-      .then(r => r.json())
+    api('/donors/')
       .then(setDonors)
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   function addLineItem() {
@@ -66,28 +62,38 @@ export default function Home() {
 
     const payload = {
       ...form,
-      line_items: lineItems.map(({ sno, ...rest }) => rest)
+      line_items: lineItems.map(({ sno, ...rest }) => ({
+        ...rest,
+        amount: parseFloat(rest.amount)
+      }))
     }
 
+    setSaving(true)
+    setStatus('')
     try {
-      const res = await fetch(`${API}/donations/`, {
+      const data = await api('/donations/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      const data = await res.json()
       setSavedId(data.id)
       setStatus('Saved successfully.')
-    } catch {
-      setStatus('Error saving donation.')
+    } catch (e) {
+      setStatus(`Error saving donation: ${e.message}`)
+    } finally {
+      setSaving(false)
     }
   }
 
   async function handleDelete() {
     if (!savedId) { alert('No saved record to delete'); return }
     if (!confirm('Delete this receipt?')) return
-    // endpoint can be added later
-    setStatus('Delete not yet implemented.')
+    try {
+      await api(`/donations/${savedId}`, { method: 'DELETE' })
+      handleNew()
+      setStatus('Receipt deleted.')
+    } catch (e) {
+      setStatus(`Error deleting receipt: ${e.message}`)
+    }
   }
 
   function handlePrint() {
@@ -95,17 +101,11 @@ export default function Home() {
     window.open(`/receipt/${savedId}`, '_blank')
   }
 
-  async function handleSearch() {
-    const res = await fetch(`${API}/donations/?${searchName ? `donor_id=` : ''}`)
-    const data = await res.json()
-    setSearchResults(data)
-  }
-
   return (
     <div style={{ padding: 16, maxWidth: 900 }}>
       <div style={{ marginBottom: 8 }}>
         <a href="/donors" style={{ fontSize: 12 }}>Manage Donors</a>
-      </div>    
+      </div>
       {/* Tabs */}
       <div style={{ display: 'flex', marginBottom: -1 }}>
         {['donation', 'search'].map(tab => (
@@ -288,7 +288,7 @@ export default function Home() {
             {/* Action buttons */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
               <button onClick={handleNew}>New</button>
-              <button onClick={handleSave}>Save</button>
+              <button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
               <button onClick={handlePrint}>Print Receipt</button>
               <button onClick={handleDelete}>Delete Receipt</button>
             </div>
@@ -296,39 +296,7 @@ export default function Home() {
         )}
 
         {/* ── SEARCH TAB ── */}
-        {activeTab === 'search' && (
-          <div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'flex-end' }}>
-              <div>
-                <div><label>Donor Name</label></div>
-                <input value={searchName} onChange={e => setSearchName(e.target.value)} style={{ width: 200 }} />
-              </div>
-              <button onClick={handleSearch}>Search</button>
-            </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
-              <thead>
-                <tr style={{ background: '#e8e8e8' }}>
-                  {['Date', 'Donor', 'Total', 'Payment Mode', 'Receipt No'].map(h => (
-                    <th key={h} style={{ border: '1px solid #adadad', padding: '2px 6px', textAlign: 'left', fontWeight: 'normal' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {searchResults.length === 0 ? (
-                  <tr><td colSpan={5} style={{ padding: 8, color: '#888' }}>No results</td></tr>
-                ) : searchResults.map((r, i) => (
-                  <tr key={i}>
-                    <td style={{ border: '1px solid #ddd', padding: '2px 6px' }}>{r.date}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '2px 6px' }}>{r.donor_id}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '2px 6px' }}>{r.total}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '2px 6px' }}>{r.payment_mode}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '2px 6px' }}>{r.fund_receipt_no}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {activeTab === 'search' && <SearchTab />}
       </div>
     </div>
   )
