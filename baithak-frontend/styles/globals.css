@@ -1,0 +1,40 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  background: #f0f0f0;
+  color: #000;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: 12px;
+  border: 1px solid #7f9db9;
+  padding: 2px 4px;
+  background: #fff;
+  height: 22px;
+}
+
+textarea {
+  height: auto;
+  resize: none;
+}
+
+button {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 3px 12px;
+  background: #e1e1e1;
+  border: 1px solid #adadad;
+  cursor: pointer;
+  min-width: 80px;
+  height: 24px;
+}
+
+button:hover { background: #d0d0d0; }
+button:active { background: #c0c0c0; }
+
+select { cursor: pointer; }
+
+label { font-size: 12px; }
