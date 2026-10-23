@@ -12,7 +12,12 @@ async def lifespan(app: FastAPI):
     await close_db()
 
 
-app = FastAPI(title="Baithak DMS API", lifespan=lifespan)
+app = FastAPI(
+    title="Baithak DMS API",
+    lifespan=lifespan,
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,10 +26,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(donors.router)
-app.include_router(donations.router)
+# Vercel passes the original path through, so every route lives under /api
+app.include_router(donors.router, prefix="/api")
+app.include_router(donations.router, prefix="/api")
 
 
-@app.get("/")
-def root():
+@app.get("/api/health")
+def health():
     return {"status": "Baithak DMS running"}

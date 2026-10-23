@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const API = 'http://localhost:8000'
+const API = process.env.NEXT_PUBLIC_API_URL || '/api'
 
 export default function Donors() {
   const [donors, setDonors] = useState([])

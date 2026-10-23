@@ -1,17 +1,19 @@
 {
+    "$schema": "https://openapi.vercel.sh/vercel.json",
     "services": {
         "frontend": {
             "root": "baithak-frontend/",
             "framework": "nextjs"
         },
         "backend": {
-            "root": "",
-            "entrypoint": "app/main:app"
+            "root": "backend/",
+            "framework": "fastapi",
+            "entrypoint": "app.main:app"
         }
     },
     "rewrites": [
         {
-            "source": "/api/:path*",
+            "source": "/api/(.*)",
             "destination": {
                 "service": "backend"
             }

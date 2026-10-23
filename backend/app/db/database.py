@@ -4,22 +4,27 @@ import os
 
 load_dotenv()
 
-client: AsyncIOMotorClient = None
+client = None
 db = None
 
 
-async def connect_db():
+def get_db():
     global client, db
-    client = AsyncIOMotorClient(os.getenv("MONGODB_URI"))
-    db = client[os.getenv("DB_NAME", "baithak_dms")]
+    if db is None:
+        client = AsyncIOMotorClient(os.getenv("MONGODB_URI"))
+        db = client[os.getenv("DB_NAME", "baithak_dms")]
+    return db
+
+
+async def connect_db():
+    database = get_db()
+    await client.admin.command("ping")  # fail fast on a bad URI
     print("Connected to MongoDB")
 
 
 async def close_db():
-    global client
+    global client, db
     if client:
         client.close()
-
-
-def get_db():
-    return db
+    client = None
+    db = None
